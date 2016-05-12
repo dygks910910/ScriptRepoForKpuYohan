@@ -4,7 +4,6 @@ from urllib.parse import urlencode
 from urllib.parse import quote_plus
 
 
-# -*- conding: utf-8 -*-
 
 def Parsing():
     key = " f%2BhwmVnBmOJ%2BRFy6p2FocJPRl32YalBVMXmrRhOJxAEk3OYfPiCVo7J%2FqlvN%2FFHm7JzgAQLePoBagzNaVLTQVQ%3D%3D "
