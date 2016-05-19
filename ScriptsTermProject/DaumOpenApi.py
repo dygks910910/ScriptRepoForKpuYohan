@@ -4,6 +4,7 @@ from urllib.request import urlopen
 import http.client
 from urllib.parse import urlencode
 from urllib.parse import quote_plus
+from xml.etree import ElementTree
 class DaumOpenAPI:
     #url�Է½� �� ���ĵ� 
     server = 'apis.daum.net'
@@ -20,30 +21,22 @@ class DaumOpenAPI:
     conn = None
     queryParams =None
     baseUrl = 'http://apis.daum.net/local/v1/search/keyword.xml'
+    xmlData = None
+
+
     def __init__(self):
         print('init')
-    def myURIBuilder(self,sellection = 1):
-        if(sellection == 1):
-            if(sellection == 1):
-                self.queryParams = '?' + urlencode({ quote_plus('query') :self.query,
+    def myURIBuilder(self):
+         self.queryParams = ('?' + urlencode({ quote_plus('query') : self.query,
                                quote_plus('location') : self.location,
                                quote_plus('radius') : self.radius,
                                quote_plus('count') : self.count,
                                quote_plus('sort') : self.sort,
                                quote_plus('page') : self.page, 
                                quote_plus('apikey'):self.regKey
-                                })
-        elif(sellection == 2):
-            if(sellection == 1):
-                self.queryParams = '?' + urlencode({ quote_plus('query') : '센타',
-                               quote_plus('location') : self.location,
-                               quote_plus('radius') : self.radius,
-                               quote_plus('count') : self.count,
-                               quote_plus('sort') : self.sort,
-                               quote_plus('page') : self.page, 
-                               quote_plus('apikey'):self.regKey
-                                })
-    def getData(self):
+                                }))
+    #검색할 장소 xml형식으로 불러오기    
+    def getData(self): 
         conn = http.client.HTTPConnection(self.server)
         print('connection complate')
 
@@ -52,15 +45,53 @@ class DaumOpenAPI:
         print('request complate\n')
 
         req = conn.getresponse()
-        xmlData = req.read()
+        self.xmlData = req.read()
         print(req.status,req.reason)
 
-        print(xmlData.decode('utf8'))
-        pass
+        print(self.xmlData.decode('utf8'))
+
+    def updateQueryParam(self):
+        tempInput = input('Search Key:')
+
+        self.query = tempInput
+        self.myURIBuilder()
+
+    def printInfo(self,rss):
+        for element in rss.findall("item"):
+           print('-------------------------------------------------------------------------------')
+
+           print('장소명:'+element.findtext('title'))
+
+           print('카테고리:'+element.findtext('category'))
+
+           print('전화번호:'+element.findtext('phone'))
+
+           print('구주소:'+element.findtext('address'))
+
+           print('도로명주소:'+element.findtext('newAddress'))
+
+           print('거리:'+element.findtext('distance')+'미터')
+
+           print('방향:'+element.findtext('direction'))
+           print('-------------------------------------------------------------------------------')
+    def extractTitleData(self):
+        #tree = ElementTree.fromstring(self.xmlData)
+        #print(self.xmlData)
+        #itemElements = tree.getiterator('item')
+        #print(itemElements)
+        #rss = ElementTree.parse(urlopen(self.baseUrl + self.queryParams())).getroot()
+       
+        #for element in rss.findall('item'):
+        #    print(element.findtext('title')
+       rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
+
+       self.printInfo(rss)
 
 
-if __name__ == '__main__':
+if (__name__ == '__main__') :
     a = DaumOpenAPI()
-    print(a.myURIBuilder())
-    #print(type(a.count))
-    a.getData()
+    while(1):
+        #print(type(a.count))
+        a.updateQueryParam()
+        #a.getData()
+        a.extractTitleData()
