@@ -1,37 +1,91 @@
-# 이메일을 보내기 위한 smtplib 모듈을 import 한다
+import mimetypes
 import smtplib
- 
-# 이메일을 보내기 위한 email 모듈을 import 한다
-# MIME (Multipurpose Internet Mail Extensions) 는 전자우편을 위한 인터넷 표준이라고 한다.
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-import codecs
-textfile = 'textfile.txt'
-# 텍스트 문서로 구성되어 있는 파일을 읽는다.
-# 여기서는 텍스트 파일이 ASCII  문자로만 구성되어 있다고 가정한다.
-#fp = open(textfile, 'rb')
- 
-# utf-8로 인코딩 된 파일을 읽고자 하는 경우
-fp = codecs.open(textfile, 'rb', 'utf-8')
-# 로 읽어들이면 될 듯 하다.
- 
-# 읽어들인 파일의 텍스트를 MIME 형식으로 바꾼다.
-msg = MIMEText(fp.read())
-fp.close()
- 
-# me == 보내는 사람의 이메일 주소
-# you == 받는 사람의 이메일 주소
-msg['Subject'] = 'The contents of %s' % textfile # 이메일 제목
-msg['From'] = 'dygks910@gmail.com'
-msg['To'] = 'dygks910910@daum.net'
- 
-# 로컬 SMTP 서버를 사용해서 메세지를 보낸다.
-# 이 예제에서는 Header 는 추가하지 않는다.
-s = smtplib.SMTP('smtp.gmail.com',587)
-s.sendmail('dygks910@gmail.com', 'dygks910910@daum.net', msg.as_string())
-s.quit()
- 
-# 로컬 SMTP 서버가 없을 경우 계정이 있는 다른 서버를 사용하면 된다.
-#s = smtplib.SMTP_SSL('smtp.gmail.com',465)
-#s.login("dygks910@gmail.com", "qkrdygks33")
-#s.sendmail(me, you, msg.as_string())
-#s.quit()
+
+#global value
+
+class EmailSystem:
+    host = "smtp.gmail.com" # Gmail STMP 서버 주소.
+    port = "587"
+    htmlFileName = "logo.html"
+    senderAddr= None
+    recipientAddr= None
+    htmlFD = None
+    HtmlPart = None
+    pw = 'qkrdygks33'
+    msg = None
+    def __init__(self):
+        self.senderAddr = "dygks910@gmail.com" # 보내는 사람 email 주소.
+        self.recipientAddr = "dygks910910@daum.net"   	# 받는 사람 email 주소.
+        self.msg = MIMEBase("multipart", "alternative")
+        self.msg['Subject'] = "Test email in Python 3.5"
+        self.msg['From'] = self.senderAddr
+        self.msg['To'] = self.recipientAddr
+
+# MIME 문서를 생성합니다.
+    def sendMail(self):
+     self.htmlFD = open(self.htmlFileName, 'rb')
+     self.HtmlPart = MIMEText(self.htmlFD.read(),'html', _charset = 'UTF-8' )
+     self.htmlFD.close()
+# 만들었던 mime을 MIMEBase에 첨부 시킨다.
+     self.msg.attach(self.HtmlPart)
+# 메일을 발송한다.
+     s = smtplib.SMTP(self.host,self.port)
+#s.set_debuglevel(1)        # 디버깅이 필요할 경우 주석을 푼다.
+     s.ehlo()
+     s.starttls()
+     s.ehlo()
+     s.login(self.senderAddr,self.pw)
+     s.sendmail(self.senderAddr , [self.recipientAddr], self.msg.as_string())
+     s.close()
+    def setInfoForInput(self,rss):
+        title = str(input ('Title :'))
+        self.senderAddr = str(input ('sender email address :'))
+        self.recipientAddr = str(input ('recipient email address :'))
+        msgtext = str(input ('write message :'))
+        self.pw= str(input (' input your password of gmail account :'))
+        sellectImportData = str(input ('Do you want to include location data? (y/n):'))
+        if sellectImportData == 'y' :
+            keyword = str(input ('input keyword to search:'))
+            html = MakeHtmlDoc(rss)
+
+        pass
+
+    def MakeHtmlDoc(self,rss):
+     from xml.dom.minidom import getDOMImplementation
+     # DOM 개체를 생성
+     impl = getDOMImplementation()
+
+     newdoc=impl.createDocument(None, 'html', None)
+     top_element = newdoc.documentElement
+     header = newdoc.createElement('header')
+     top_element.appendChild(header)
+     #Body 엘리먼트를 생성
+     body = newdoc.createElement('body')
+
+     for bookitem in rss:#------------------------------------------------test
+         # Bold 엘리먼트 생성
+         b=newdoc.createElement('b')
+         # 텍스트 노드 생성
+         itemText=newdoc.createTextNode("item:")
+         b.appendChild(itemText)
+         body.appendChild(b)
+         # <br> 부분 생성
+         br = newdoc.createElement('br')
+         body.appendChild(br)
+         # title 부분 생성
+         p = newdoc.createElement('p')
+         # 텍스트 노드를 만듭니다.
+         titleText=newdoc.createTextNode('Title:')
+         p.appendChild(titleText)
+         body.appendChild(p)
+         body.appendChild(br)
+     # Body 엘리먼트를 취상위 엘리먼트에 추가
+     top_element.appendChild(body)
+     return newdoc.toxml()
+
+if __name__ == '__main__':
+    s = EmailSystem()
+    s.sendMail()
+    pass

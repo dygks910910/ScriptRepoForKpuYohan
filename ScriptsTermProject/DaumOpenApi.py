@@ -86,12 +86,14 @@ class DaumOpenAPI:
        rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
 
        self.printInfo(rss)
-
+    def getdataFromQuery(self):
+        self.updateQueryParam()
+        rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
+        return rss
 
 if (__name__ == '__main__') :
     a = DaumOpenAPI()
     while(1):
         #print(type(a.count))
-        a.updateQueryParam()
+        a.printInfo(a.getdataFromQuery())
         #a.getData()
-        a.extractTitleData()
