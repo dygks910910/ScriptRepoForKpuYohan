@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 import urllib.request,urllib.parse 
 from urllib.request import urlopen
 import http.client
@@ -50,10 +49,9 @@ class DaumOpenAPI:
 
         print(self.xmlData.decode('utf8'))
 
-    def updateQueryParam(self):
-        tempInput = input('Search Key:')
+    def updateQueryParam(self,key):
 
-        self.query = tempInput
+        self.query = key
         self.myURIBuilder()
 
     def printInfo(self,rss):
@@ -86,8 +84,8 @@ class DaumOpenAPI:
        rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
 
        self.printInfo(rss)
-    def getdataFromQuery(self):
-        self.updateQueryParam()
+    def getdataFromQuery(self,key):
+        self.updateQueryParam(key)
         rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
         return rss
 
