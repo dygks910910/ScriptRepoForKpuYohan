@@ -7,7 +7,74 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart #MIMEMultipart MIME 생성
 
 #global value
+def MakeHtmlDoc(self,rss):
+     from xml.dom.minidom import getDOMImplementation
+     # DOM 개체를 생성
+     impl = getDOMImplementation()
 
+     newdoc=impl.createDocument(None, 'html', None)
+     top_element = newdoc.documentElement
+     header = newdoc.createElement('header')
+     top_element.appendChild(header)
+     #Body 엘리먼트를 생성
+     body = newdoc.createElement('body')
+
+     for bookitem in rss.findall('item'):#------------------------------------------------test
+         # Bold 엘리먼트 생성
+         b=newdoc.createElement('b')
+         # 텍스트 노드 생성
+         titletext=newdoc.createTextNode("장소명:"+bookitem.findtext('title'))
+         b.appendChild(titletext)
+         #print(titletext)
+
+         body.appendChild(b)
+         # <br> 부분 생성
+         br = newdoc.createElement('br')
+         body.appendChild(br)
+         
+         # title 부분 생성
+         b = newdoc.createElement('p')
+         # 텍스트 노드를 만듭니다.
+         phonetext=newdoc.createTextNode('전화번호:'+bookitem.findtext('phone'))
+         b.appendChild(phonetext)
+        # print(phonetext)
+
+         body.appendChild(b)
+         body.appendChild(br)
+
+          # 주소 부분 생성
+         b = newdoc.createElement('p')
+         # 텍스트 노드를 만듭니다.
+         phonetext=newdoc.createTextNode('주소:'+bookitem.findtext('address'))
+         b.appendChild(phonetext)
+        # print(phonetext)
+
+         body.appendChild(b)
+         body.appendChild(br)
+
+          # 도로명주소 부분 생성
+         b = newdoc.createElement('p')
+         # 텍스트 노드를 만듭니다.
+         phonetext=newdoc.createTextNode('도로명주소:'+bookitem.findtext('newAddress'))
+         b.appendChild(phonetext)
+         #print(phonetext)
+
+         body.appendChild(b)
+         body.appendChild(br)
+
+          # title 부분 생성
+         b = newdoc.createElement('p')
+         # 텍스트 노드를 만듭니다.
+         phonetext=newdoc.createTextNode('거리:'+bookitem.findtext('distance'))
+         b.appendChild(phonetext)
+        # print(phonetext)
+
+         body.appendChild(b)
+         body.appendChild(br)
+     # Body 엘리먼트를 취상위 엘리먼트에 추가
+
+     top_element.appendChild(body)
+     return newdoc.toxml()
 class EmailSystem:
     host = "smtp.gmail.com" # Gmail STMP 서버 주소.
     port = "587"
@@ -97,7 +164,7 @@ class EmailSystem:
          # 텍스트 노드 생성
          titletext=newdoc.createTextNode("장소명:"+bookitem.findtext('title'))
          b.appendChild(titletext)
-         print(titletext)
+         #print(titletext)
 
          body.appendChild(b)
          # <br> 부분 생성
@@ -109,7 +176,7 @@ class EmailSystem:
          # 텍스트 노드를 만듭니다.
          phonetext=newdoc.createTextNode('전화번호:'+bookitem.findtext('phone'))
          b.appendChild(phonetext)
-         print(phonetext)
+         #print(phonetext)
 
          body.appendChild(b)
          body.appendChild(br)
@@ -119,7 +186,7 @@ class EmailSystem:
          # 텍스트 노드를 만듭니다.
          phonetext=newdoc.createTextNode('주소:'+bookitem.findtext('address'))
          b.appendChild(phonetext)
-         print(phonetext)
+         #print(phonetext)
 
          body.appendChild(b)
          body.appendChild(br)
@@ -129,7 +196,7 @@ class EmailSystem:
          # 텍스트 노드를 만듭니다.
          phonetext=newdoc.createTextNode('도로명주소:'+bookitem.findtext('newAddress'))
          b.appendChild(phonetext)
-         print(phonetext)
+         #print(phonetext)
 
          body.appendChild(b)
          body.appendChild(br)
@@ -139,7 +206,7 @@ class EmailSystem:
          # 텍스트 노드를 만듭니다.
          phonetext=newdoc.createTextNode('거리:'+bookitem.findtext('distance'))
          b.appendChild(phonetext)
-         print(phonetext)
+         #print(phonetext)
 
          body.appendChild(b)
          body.appendChild(br)
@@ -151,10 +218,59 @@ class EmailSystem:
     
 
 
+#if __name__ == '__main__':
+#    import DaumOpenApi
+
+#    api = DaumOpenApi.DaumOpenAPI()
+
+#    s = EmailSystem()
+#    s.sendMailImportInfo(api.getdataFromQuery('칼국수'))
+
+
+
+#from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+
+from http.server import BaseHTTPRequestHandler,HTTPServer
+from urllib.parse import urlparse
+class MyHandler(BaseHTTPRequestHandler):
+    from DaumOpenApi import DaumOpenAPI
+    import sys
+    serachKey = None
+    a = DaumOpenAPI()
+    def do_GET(self):
+        #url 파싱해서 ‘=‘을 기준으로 keyword와 value로 문자열 구분
+        url = self.a.getUrl(self.serachKey)
+        #print(url)
+        parts = urlparse(url)
+        keyword, value = parts.query.split('=',1)#--------------------------------에러....
+
+        #if keyword == 'count' : #keyword가 “title”인 경우
+        #try:
+        html = MakeHtmlDoc(self.a,(self.a.getdataFromQuery(self.serachKey))) #value제목검색 후 HTML전환
+            ##헤더 부분 작성.
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html;charset=utf-8')
+        self.end_headers()
+        self.wfile.write(html.encode('utf-8')) #  본분( body ) 부분 출력
+        #else:
+        #    self.send_error(400,' bad requst : please check the your url') # 잘못된 요청 응답
+
+    def startWebService(self):
+        self.serachKey = input('search Key:')
+        try:
+            server = HTTPServer( ('localhost',8080), MyHandler)
+            print("started http server....")
+            print('address = http://localhost:8080')
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print ("shutdown web server")
+            server.socket.close()  # server 종료합니다.
+
+
+ 
+
+
 if __name__ == '__main__':
-    import DaumOpenApi
-
-    api = DaumOpenApi.DaumOpenAPI()
-
-    s = EmailSystem()
-    s.sendMailImportInfo(api.getdataFromQuery('칼국수'))
+    handler = MyHandler
+    handler.startWebService(handler)
