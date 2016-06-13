@@ -6,6 +6,7 @@ def main():
     openAPI = DaumOpenAPI()
     cEmail = testEmail.EmailSystem()
     handler = testEmail.MyHandler
+    fout = None
     while(True):
         print('=======================================================================================')
         print('한국 산업기술대학교 에서 가장 가까운 장소를 키워드로 검색하여 찾아주는 프로그램입니다.')
@@ -19,12 +20,12 @@ def main():
             openAPI.printInfo(tempRss)
         elif(menuNum == '2'):
             cEmail.sendMailImportInfo(openAPI.getdataFromQuery(input('search keyword:')))
-            pass
         elif(menuNum == '3'):
             handler.startWebService(handler)
-            pass
         elif(menuNum == '4'):
-            pass
+            openAPI.fileOut()
+
+
         input("Press any key to continue. . .")
         os.system('cls')
 

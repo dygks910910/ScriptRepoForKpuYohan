@@ -74,27 +74,53 @@ class DaumOpenAPI:
            print('방향:'+element.findtext('direction'))
            print('-------------------------------------------------------------------------------')
     def extractTitleData(self):
-        #tree = ElementTree.fromstring(self.xmlData)
-        #print(self.xmlData)
-        #itemElements = tree.getiterator('item')
-        #print(itemElements)
-        #rss = ElementTree.parse(urlopen(self.baseUrl + self.queryParams())).getroot()
-       
-        #for element in rss.findall('item'):
-        #    print(element.findtext('title')
        rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
        
        self.printInfo(rss)
     def getdataFromQuery(self,key):
         self.updateQueryParam(key)
         rss = (ElementTree.parse(urlopen(self.baseUrl + self.queryParams))).getroot()
-        #print(self.baseUrl + self.queryParams)
         return rss
     def getUrl(self,key):
         self.updateQueryParam(key)
         return self.baseUrl + self.queryParams
+    def fileOut(self):
+        myQuery = None
+        f = open("자료.txt", 'w')
+        
+        rss =DaumOpenAPI.getdataFromQuery(self,input("search:"))
+        for element in rss.findall("item"):
+
+           place = '장소명:'+element.findtext('title')+'\n'
+
+           category = '카테고리:'+element.findtext('category') + '\n'
+
+           phone = '전화번호:'+element.findtext('phone')+'\n'
+
+           address = '구주소:'+element.findtext('address')+'\n'
+
+           newaddress = '도로명주소:'+element.findtext('newAddress')+'\n'
+
+           distance = '거리:'+element.findtext('distance')+'미터'+'\n'
+
+           direction = '방향:'+element.findtext('direction')+'\n'
+
+           endline = '-------------------------------------------------------------------------------'+'\n'
+           
+           f.write(endline)
+           f.write(place)
+           f.write(category)
+           f.write(phone)
+           f.write(address)
+           f.write(newaddress)
+           f.write(distance)
+           f.write(direction)
+           f.write(endline)
+
+        f.close()
+        print("파일출력 완료")
+
+
 if (__name__ == '__main__') :
     a = DaumOpenAPI()
-        #print(type(a.count))
-    a.printInfo(a.getdataFromQuery('산기대'))
-        #a.getData()
+    a.fileOut()
